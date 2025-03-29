@@ -150,15 +150,37 @@ void loop() {
   current_time = micros();      
   dt = (current_time - prev_time)/1000000.0;
   loopBlink(); //Indicate we are in main loop with short blink every 1.5 seconds
+
+  //Print data at 100hz (uncomment one at a time for troubleshooting) - SELECT ONE:
+  printRadioData();     //Prints radio pwm values (expected: 1000 to 2000)
+  //printDesiredState();  //Prints desired vehicle state commanded in either degrees or deg/sec (expected: +/- maxAXIS for roll, pitch, yaw; 0 to 1 for throttle)
+  //printGyroData();      //Prints filtered gyro data direct from IMU (expected: ~ -250 to 250, 0 at rest)
+  //printAccelData();     //Prints filtered accelerometer data direct from IMU (expected: ~ -2 to 2; x,y 0 when level, z 1 when level)
+  //printMagData();       //Prints filtered magnetometer data direct from IMU (expected: ~ -300 to 300)
+  //printRollPitchYaw();  //Prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected: degrees, 0 when level)
+  //printPIDoutput();     //Prints computed stabilized PID variables from controller and desired setpoint (expected: ~ -1 to 1)
+  //printMotorCommands(); //Prints the values being written to the motors (expected: 120 to 250)
+  //printServoCommands(); //Prints the values being written to the servos (expected: 0 to 180)
+  //printLoopRate();      //Prints the time between loops in microseconds (expected: microseconds between loop iterations)
+  
   armedStatus(); //Check if the throttle cut is off and throttle is low.
+  
   getIMUdata(); //Pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
+  
   getDesState(); //Convert raw commands to normalized values based on saturated control limits
+  
   controlANGLE(); //Stabilize on angle setpoint
+  
   controlMixer(); //Mixes PID outputs to scaled actuator commands -- custom mixing assignments done here
+  
   scaleCommands(); //Scales motor commands to 125 to 250 range (oneshot125 protocol) and servo PWM commands to 0 to 180 (for servo library)
+  
   throttleCut(); //Directly sets motor commands to low based on state of ch5
+  
   commandMotors(); //Sends command pulses to each motor pin using OneShot125 protocol
+  
   getCommands(); //Pulls current available radio commands
+  
   failSafe(); //Prevent failures in event of bad receiver connection, defaults to failsafe values assigned in loopRate(2000); //Do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
 }
 
@@ -192,7 +214,6 @@ void IMUinit() {
   
   if (mpu6050.testConnection() == false) {
     Serial.println("MPU6050 initialization unsuccessful");
-    Serial.println("Check MPU6050 wiring or try cycling power");
     while(1) {}
   }
   mpu6050.setFullScaleGyroRange(GYRO_SCALE);
