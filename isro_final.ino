@@ -1,12 +1,3 @@
-#define USE_SBUS_RX
-
-#define USE_MPU6050_I2C //Default
-
-#define GYRO_250DPS //Default
-
-#define ACCEL_2G //Default
-
-
 #include <Wire.h>     //I2c communication
 #include "src/SBUS/SBUS.h"   //sBus interface
 #include "src/MPU6050/MPU6050.h"
@@ -194,30 +185,25 @@ void armedStatus() {
 }
 
 void IMUinit() {
-  #if defined USE_MPU6050_I2C
-    Wire.begin();
-    Wire.setClock(1000000); //Note this is 2.5 times the spec sheet 400 kHz max...
-    
-    mpu6050.initialize();
-    
-    if (mpu6050.testConnection() == false) {
-      Serial.println("MPU6050 initialization unsuccessful");
-      Serial.println("Check MPU6050 wiring or try cycling power");
-      while(1) {}
-    }
-    mpu6050.setFullScaleGyroRange(GYRO_SCALE);
-    mpu6050.setFullScaleAccelRange(ACCEL_SCALE);
-    
-  #endif
+  Wire.begin();
+  Wire.setClock(1000000); //Note this is 2.5 times the spec sheet 400 kHz max...
+  
+  mpu6050.initialize();
+  
+  if (mpu6050.testConnection() == false) {
+    Serial.println("MPU6050 initialization unsuccessful");
+    Serial.println("Check MPU6050 wiring or try cycling power");
+    while(1) {}
+  }
+  mpu6050.setFullScaleGyroRange(GYRO_SCALE);
+  mpu6050.setFullScaleAccelRange(ACCEL_SCALE);
 }
 
 void getIMUdata() {
   int16_t AcX,AcY,AcZ,GyX,GyY,GyZ;
 
-  #if defined USE_MPU6050_I2C
-    mpu6050.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
-  #endif
-
+  mpu6050.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
+  
  //Accelerometer
   AccX = AcX / ACCEL_SCALE_FACTOR; //G's
   AccY = AcY / ACCEL_SCALE_FACTOR;
@@ -265,9 +251,7 @@ void calculate_IMU_error() {
   //Read IMU values 12000 times
   int c = 0;
   while (c < 12000) {
-    #if defined USE_MPU6050_I2C
-      mpu6050.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
-    #endif
+    mpu6050.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
     
     AccX  = AcX / ACCEL_SCALE_FACTOR;
     AccY  = AcY / ACCEL_SCALE_FACTOR;
